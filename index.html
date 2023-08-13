@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticketing System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 10px;
+    }
+    .container {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 20px;
+    }
+    .create-ticket {
+      width: 40%;
+      padding: 20px;
+      border: 1px solid #ddd;
+    }
+    .people-list {
+      width: 40%;
+      padding: 20px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ticketing System</h1>
+  </header>
+  <div class="container">
+    <div class="create-ticket">
+      <h2>Create New Ticket</h2>
+      <form id="ticket-form">
+        <label for="issue">Issue Description:</label>
+        <input type="text" id="issue" required>
+        <br>
+        <label for="raised-by">Raised By (User ID):</label>
+        <input type="text" id="raised-by" required>
+        <br>
+        <button type="submit">Create Ticket</button>
+      </form>
+    </div>
+    <div class="people-list">
+      <h2>People and Their Tickets</h2>
+      <ul id="people-list"></ul>
+    </div>
+  </div>
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const ticketForm = document.getElementById('ticket-form');
+    const peopleList = document.getElementById('people-list');
+
+    ticketForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const issueDescription = document.getElementById('issue').value;
+      const raisedBy = document.getElementById('raised-by').value;
+
+      try {
+        const response = await fetch('http://localhost:3000/tickets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ issueDescription, raisedBy })
+        });
+      if (response.ok) {
+          const ticket = await response.json();
+          alert('Ticket created successfully!');
+          ticketForm.reset();
+        } else {
+          const errorData = await response.json();
+          alert(`Error: ${errorData.message}`);
+        }
+      } catch (error) {
+        console.error('Error submitting the request:', error);
+        alert('An error occurred while submitting the request.');
+      }
+
+      async function fetchPeople() {
+        const response = await fetch('http://localhost:3000/people');
+        const peopleData = await response.json();
+
+        peopleList.innerHTML = '';
+        peopleData.forEach(person => {
+          const personItem = document.createElement('li');
+          personItem.innerHTML = `
+            <strong>${person.name} (${person.id})</strong><br>
+            Tickets assigned: ${person.tickets.length}
+          `;
+          peopleList.appendChild(personItem);
+        });
+      }
+
+      fetchPeople();
+    });
+
+
+    // async function fetchPeople() {
+    //   const response = await fetch('http://localhost:3000/people');
+    //   // ...
+    // }
+
+    // fetchPeople();
+  });
+</script>
+</body>
+</html>
